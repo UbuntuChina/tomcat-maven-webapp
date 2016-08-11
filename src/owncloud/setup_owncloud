@@ -1,0 +1,68 @@
+#!/bin/sh
+
+mysqld_pid_file_path=$SNAP_DATA/mysql/`hostname`.pid
+# Wait for mysql to be up and running, since we need to make sure
+# we run the upgrade process.
+echo "Waiting for mysql..."
+while [ ! -f "$mysqld_pid_file_path" ]; do
+	sleep 1
+done
+
+# Wait until we have an owncloud mysql password
+echo "Obtaining owncloud mysql credentials..."
+owncloud_password_path=$SNAP_DATA/mysql/owncloud_password
+timeout=10
+while [ $timeout -gt 0 -a ! -e $owncloud_password_path ]; do
+	timeout=$((timeout-1))
+	sleep 1
+done
+if [ -e $owncloud_password_path ]; then
+	echo "owncloud mysql credentials successfully obtained"
+	export OWNCLOUD_DATABASE_PASSWORD=$(cat $owncloud_password_path)
+else
+	echo -n "Timed out while attempting to obtain owncloud mysql password. "
+	echo -n "This isn't unusual when starting up for the first time after "
+	echo "an install or an upgrade. Will try again."
+	exit 1
+fi
+
+# Make sure owncloud directory exists
+# FIXME: Use common environment variable when it exists
+mkdir -p -m 750 $SNAP_DATA/../common/owncloud
+
+# Make sure owncloud tmp directory exists
+# FIXME: Use common environment variable when it exists
+mkdir -p -m 750 $SNAP_DATA/../common/owncloud/tmp
+
+# Make sure owncloud extra-apps directory exists (for user apps)
+mkdir -p -m 750 $SNAP_DATA/owncloud/extra-apps
+
+# If this is a new install, make sure it's configured correctly
+export OWNCLOUD_CONFIG_DIR=$SNAP_DATA/owncloud/config
+if [ ! -d "$OWNCLOUD_CONFIG_DIR" ]; then
+	echo "Configuring ownCloud..."
+	cp -r $SNAP/htdocs/config $OWNCLOUD_CONFIG_DIR
+fi
+
+# Finally, make sure ownCloud is up to date. The return code of the upgrade
+# can be used to determine the outcome:
+#    succes = 0;
+#    not installed = 1;
+#    in maintenance mode = 2;
+#    already up to date = 3;
+#    invalid arguments  = 4;
+#    other failure = 5;
+echo "Making sure ownCloud is fully upgraded..."
+occ upgrade --no-interaction
+return_code=$?
+if [ $return_code -eq 1 ]; then
+	echo "ownCloud is not yet installed-- no upgrade necessary"
+elif [ $return_code -eq 3 ]; then
+	echo "ownCloud is fully upgraded"
+elif [ $return_code -ne 0 ]; then
+	echo "Unable to upgrade ownCloud. Will try again."
+	# occ may have left it in maintenance mode, so turn that off
+	occ maintenance:mode --off
+	sleep 10 # Delaying here so systemd doesn't throttle us
+	exit 1
+fi
