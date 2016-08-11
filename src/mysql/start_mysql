@@ -3,7 +3,7 @@
 root_option_file="$SNAP_DATA/mysql/root.ini"
 owncloud_password_file="$SNAP_DATA/mysql/owncloud_password"
 mysqld_pid_file_path=$SNAP_DATA/mysql/`hostname`.pid
-mysql_socket_file_path=$SNAP_DATA/mysql/mysql.sock
+#mysql_socket_file_path=$SNAP_DATA/mysql/mysql.sock
 new_install=false
 
 # Make sure the database is initialized (this is safe to run if already
@@ -12,6 +12,7 @@ mysqld --initialize-insecure --basedir="$SNAP" --datadir="$SNAP_DATA/mysql" --lc
 
 # If the above command succeeded, it means this is a new installation.
 if [ $? -eq 0 ]; then
+	echo "it is new install"
 	new_install=true
 fi
 
@@ -23,18 +24,26 @@ if [ $new_install = true ]; then
 	# Generate a password for the root mysql user.
 	echo -n "Generating root mysql password... "
 	root_password=$(cat /dev/urandom | tr -dc _A-Z-a-z-0-9 | head -c64)
+	echo $root_password
 	echo "done."
 
 	# Generate a password for the owncloud mysql user.
 	echo -n "Generating owncloud mysql password... "
 	owncloud_password=$(cat /dev/urandom | tr -dc _A-Z-a-z-0-9 | head -c64)
+	echo $owncloud_password
 	echo "done."
 
 	# Save root user information
+	echo "writing client"
 	echo "[client]" >> $root_option_file
-	echo "socket=$mysql_socket_file_path" >> $root_option_file
+#	echo "writing socket file path"
+#	echo "socket=$mysql_socket_file_path" >> $root_option_file
+	echo "writing user=root"
 	echo "user=root" >> $root_option_file
 	chmod 600 $root_option_file
+	
+	echo "dump the root option file"
+	cat $root_option_file
 
 	# Now set everything up in one step:
 	# 1) Set the root user's password
@@ -57,12 +66,14 @@ SQL
 	fi
 
 	# Now the root mysql user has a password. Save that as well.
+	echo "writing root password"
 	echo "password=$root_password" >> $root_option_file
 fi
 
 # Wait here until mysql is running
 echo "Waiting for server..."
-while [ ! -f "$mysqld_pid_file_path" -o ! -S "$mysql_socket_file_path" ]; do
+#while [ ! -f "$mysqld_pid_file_path" -o ! -S "$mysql_socket_file_path" ]; do
+while [ ! -f "$mysqld_pid_file_path" -o ]; do
 	sleep 1
 done
 
@@ -75,7 +86,8 @@ if [ $? -eq 0 ]; then
 	$SNAP/support-files/mysql.server restart
 
 	echo "Waiting for server to come back after upgrade..."
-	while [ ! -f "$mysqld_pid_file_path" -o ! -S "$mysql_socket_file_path" ]; do
+#	while [ ! -f "$mysqld_pid_file_path" -o ! -S "$mysql_socket_file_path" ]; do
+	while [ ! -f "$mysqld_pid_file_path" -o ]; do
         	sleep 1
 	done
 fi

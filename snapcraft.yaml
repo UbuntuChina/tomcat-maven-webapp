@@ -27,7 +27,7 @@ apps:
 parts:
     webapp:
         plugin: maven
-        source: https://github.com/lool/snappy-mvn-demo.git
+        source: https://github.com/liu-xiao-guo/snappy-mvn-demo.git
         source-type: git
     tomcat:
         plugin: dump
@@ -113,3 +113,4 @@ parts:
            src/mysql/start_mysql: bin/
            src/mysql/my.cnf: my.cnf
            src/mysql/mysql.server: support-files/
+           sample.war: war/sample.war
