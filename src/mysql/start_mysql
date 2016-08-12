@@ -23,14 +23,16 @@ $SNAP/support-files/mysql.server start
 if [ $new_install = true ]; then
 	# Generate a password for the root mysql user.
 	echo -n "Generating root mysql password... "
-	root_password=$(cat /dev/urandom | tr -dc _A-Z-a-z-0-9 | head -c64)
-	echo $root_password
+	# root_password=$(cat /dev/urandom | tr -dc _A-Z-a-z-0-9 | head -c64)
+	root_password="123"
+	echo "$root_password"
 	echo "done."
 
 	# Generate a password for the owncloud mysql user.
 	echo -n "Generating owncloud mysql password... "
 	owncloud_password=$(cat /dev/urandom | tr -dc _A-Z-a-z-0-9 | head -c64)
-	echo $owncloud_password
+	owncloud_password="123"
+	# echo owncloud_password
 	echo "done."
 
 	# Save root user information
@@ -67,6 +69,7 @@ SQL
 
 	# Now the root mysql user has a password. Save that as well.
 	echo "writing root password"
+	echo "root_password is: $root_password"
 	echo "password=$root_password" >> $root_option_file
 fi
 

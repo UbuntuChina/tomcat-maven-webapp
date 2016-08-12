@@ -3,8 +3,8 @@ version: 1.0
 architectures:
  - amd64
 summary: Demo of Tomcat-hosted Webapp
-description: This is a demo snap of a Tomcat-hosted webapp produced by snapcraft with maven.
 confinement: strict
+description: This is a demo snap of a Tomcat-hosted webapp produced by snapcraft with maven.
 
 apps:
  tomcat:
@@ -21,13 +21,15 @@ apps:
 
  # MySQL client
  mysql-client:
-   command: mysql --defaults-file=$SNAP_DATA/mysql/root.ini
+#   command: mysql --defaults-file=$SNAP_DATA/mysql/root.ini
+#   command: mysql --protocol=TCP -u root -p
+   command: mysql --defaults-file=$SNAP_DATA/mysql/root.ini --protocol=TCP
    plugs: [network, network-bind]
    
 parts:
     webapp:
         plugin: maven
-        source: https://github.com/liu-xiao-guo/snappy-mvn-demo.git
+        source: https://github.com/liu-xiao-guo/jsp_demo.git
         source-type: git
     tomcat:
         plugin: dump
@@ -114,3 +116,4 @@ parts:
            src/mysql/my.cnf: my.cnf
            src/mysql/mysql.server: support-files/
            sample.war: war/sample.war
+           mysql-connector-java-6.0.3.jar: lib/mysql-connector-java-6.0.3.jar
