@@ -25,14 +25,12 @@ if [ $new_install = true ]; then
 	echo -n "Generating root mysql password... "
 	# root_password=$(cat /dev/urandom | tr -dc _A-Z-a-z-0-9 | head -c64)
 	root_password="123"
-	echo "$root_password"
 	echo "done."
 
 	# Generate a password for the owncloud mysql user.
 	echo -n "Generating owncloud mysql password... "
 	owncloud_password=$(cat /dev/urandom | tr -dc _A-Z-a-z-0-9 | head -c64)
 	owncloud_password="123"
-	# echo owncloud_password
 	echo "done."
 
 	# Save root user information
@@ -58,6 +56,18 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '$root_password';
 CREATE USER 'owncloud'@'localhost' IDENTIFIED BY '$owncloud_password';
 CREATE DATABASE owncloud;
 GRANT ALL PRIVILEGES ON owncloud.* TO 'owncloud'@'localhost' IDENTIFIED BY '$owncloud_password';
+USE owncloud;
+create table Employees
+    (
+     id int not null,
+     age int not null,
+     first varchar (255),
+     last varchar (255)
+    );
+INSERT INTO Employees VALUES (100, 18, 'Zara', 'Ali');
+INSERT INTO Employees VALUES (101, 25, 'Mahnaz', 'Fatma');    
+INSERT INTO Employees VALUES (102, 30, 'Zaid', 'Khan');
+INSERT INTO Employees VALUES (103, 28, 'Sumit', 'Mittal');
 SQL
 	if [ $? -eq 0 ]; then
 		echo "done."
@@ -69,7 +79,6 @@ SQL
 
 	# Now the root mysql user has a password. Save that as well.
 	echo "writing root password"
-	echo "root_password is: $root_password"
 	echo "password=$root_password" >> $root_option_file
 fi
 

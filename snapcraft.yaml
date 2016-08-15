@@ -29,7 +29,7 @@ apps:
 parts:
     webapp:
         plugin: maven
-        source: https://github.com/liu-xiao-guo/jsp_demo.git
+        source: https://github.com/liu-xiao-guo/jsp_table.git
         source-type: git
     tomcat:
         plugin: dump
